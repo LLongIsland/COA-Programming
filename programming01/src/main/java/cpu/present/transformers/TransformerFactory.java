@@ -12,6 +12,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TransformerFactory {
+    public static String getComplement(String tar){
+        tar=tar.replace("0","2").replace("1","0").replace("2","1");
+        char[] status=tar.toCharArray();
+        for(int i=tar.length()-1,jud=1;i>=0;i--){
+            status[i]=(char)((jud^(tar.charAt(i)-'0'))+'0');
+            jud=((tar.charAt(i)-'0')&jud);
+        }
+        return Arrays.toString(status).replaceAll("[\\[\\]\\s,]", "");
+    }
 
 	/**
      * calculate the Binary Code {@link Transformer#code} from possible data-presentation
@@ -27,8 +36,8 @@ public class TransformerFactory {
             eLength = Integer.parseInt(args[1]);
             sLength = Integer.parseInt(args[2]);
         } else {
-            eLength = 0;
-            sLength = Number.DATA_SIZE_LIMITATION;
+            eLength = 8;
+            sLength = 23;
         }
 
         if (rawType.equals(PresentType.BCD.W8421)) {
@@ -52,9 +61,17 @@ public class TransformerFactory {
                 ret = ret + String.valueOf(j);
             }
             return  new Transformer(PresentType.DEC.INTEGER,ret);
-            //TODO
         } else if (rawType.equals(PresentType.BIN.TWOS_COMPLEMENT)) {
-            // nothing to do
+            boolean flag=(code.charAt(0)=='1');
+            if(flag){
+                code='1'+code;
+                code=getComplement(code);
+            }
+            int dec=Integer.parseInt(code,2);
+            if(flag){
+                dec=-dec;
+            }
+            return TransformerFactory.getTransformer(PresentType.DEC.INTEGER,storageType,Integer.toString(dec));
         } else if (rawType.equals(PresentType.DEC.INTEGER)) {
             if (storageType.equals(PresentType.BCD.W8421)) {
                 StringBuilder ret=new StringBuilder(code.charAt(0)=='-'?"1101":"1100");
@@ -84,13 +101,7 @@ public class TransformerFactory {
                 ret=tmp.toString();
                 if(flag) {
                     ret=tmp.insert(0,"00").toString();
-                    ret=ret.replace("0","2").replace("1","0").replace("2","1");
-                    char[] status=ret.toCharArray();
-                    for(int i=ret.length()-1,jud=1;i>=0;i--){
-                        status[i]=(char)((jud^(ret.charAt(i)-'0'))+'0');
-                        jud=((ret.charAt(i)-'0')&jud);
-                    }
-                    ret= Arrays.toString(status).replaceAll("[\\[\\]\\s,]", "");
+                    ret=getComplement(ret);
                 }
                 if(ret.length()<=32) {
                     for (int i = 1; i <= 32 - ret.length();i++)
@@ -130,7 +141,15 @@ public class TransformerFactory {
             ret.append(String.format("%-"+sLength+"s",temp.substring(1)).replace(" ","0"));
             return new Transformer(PresentType.BIN.FLOAT,ret.toString());
         } else if (rawType.equals(PresentType.BIN.FLOAT)) {
-            // nothing to do
+            if(storageType.equals(PresentType.BIN.TWOS_COMPLEMENT)){
+                boolean flag=(code.charAt(0)=='1');
+                int exp=Integer.parseInt(code.substring(1,9),2)-127; //exp>=0
+                int ret=Integer.parseInt("1"+code.substring(9,9+exp),2);
+                if(flag){
+                    ret=-ret;
+                }
+                return TransformerFactory.getTransformer(PresentType.DEC.INTEGER,storageType,Integer.toString(ret));
+            }
         }
 
         return new Transformer(storageType, code, String.valueOf(eLength), String.valueOf(sLength));

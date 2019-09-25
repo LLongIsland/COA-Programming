@@ -28,7 +28,7 @@ public class Number {
     }
 
     public static void main(String[] args) {
-        Number number=new Number(PresentType.BCD.W8421, PresentType.BCD.W8421, new String[]{"11000000000000000000000001100110"});
-        System.out.println(number.get(PresentType.BIN.FLOAT));
+        Number number=new Number(PresentType.DEC.FLOAT, PresentType.BIN.FLOAT, "-21.0");
+        System.out.println(number.get(PresentType.BIN.TWOS_COMPLEMENT));
     }
 }
