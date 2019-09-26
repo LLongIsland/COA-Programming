@@ -26,7 +26,11 @@ public class Transformer {
 
 	public String to(PresentType type) {
 		Transformer tmp=TransformerFactory.getTransformer(this.type,type,code);
-	    return tmp.code;
+		if(tmp.code.length()>32) {
+			return tmp.code.substring(tmp.code.length()-32,tmp.code.length());
+		} else{
+			return tmp.code;
+		}
 	}
 
 }

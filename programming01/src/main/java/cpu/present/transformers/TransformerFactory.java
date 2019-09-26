@@ -67,6 +67,20 @@ public class TransformerFactory {
                 code='1'+code;
                 code=getComplement(code);
             }
+            if(code.length()>32){
+                BigDecimal tmp=new BigDecimal("0");
+                BigDecimal record=new BigDecimal("1");
+                for(int i=code.length()-1;i>=0;i--) {
+                    if(code.charAt(i)=='0'){
+                        record=record.multiply(new BigDecimal("2"));
+                        continue;
+                    }
+                    tmp = tmp.add(record);
+                    record=record.multiply(new BigDecimal("2"));
+                }
+                code=tmp.toString();
+                return TransformerFactory.getTransformer(PresentType.DEC.INTEGER,storageType,flag?"-"+code:code);
+            }
             int dec=Integer.parseInt(code,2);
             if(flag){
                 dec=-dec;
@@ -106,8 +120,6 @@ public class TransformerFactory {
                 if(ret.length()<=32) {
                     for (int i = 1; i <= 32 - ret.length();i++)
                         ad=ad.replaceFirst("",flag?"1":"0");
-                } else{
-                    ret=ret.substring(ret.length()-32,ret.length());
                 }
                 return new Transformer(PresentType.BIN.TWOS_COMPLEMENT,ad+ret);
             }else if(storageType.equals(PresentType.DEC.FLOAT)){
@@ -116,9 +128,14 @@ public class TransformerFactory {
                 return TransformerFactory.getTransformer(PresentType.DEC.FLOAT,PresentType.BIN.FLOAT,code+".0","8","23");
             }
         } else if (rawType.equals(PresentType.DEC.FLOAT)) {
-            StringBuilder ret=new StringBuilder(code.charAt(0)=='-'?"1":"0");
+            boolean flag=(code.charAt(0)=='-');
+            code=code.replace("-","");
+            StringBuilder ret=new StringBuilder(flag?"1":"0");
             String[] parts=code.split("\\.");
-            StringBuilder temp=new StringBuilder(Integer.toBinaryString(Integer.valueOf(parts[0].replace("-",""))));
+            if(new BigDecimal(parts[0]).compareTo(new BigDecimal(Integer.MAX_VALUE))==1){
+                return new Transformer(PresentType.BIN.FLOAT,ret.append("1111111100000000000000000000000").toString());
+            }
+            StringBuilder temp=new StringBuilder(Integer.toBinaryString(Integer.valueOf(parts[0])));
             int dotloc=(temp.charAt(0)=='0'?0:temp.length());
             float remain=Float.valueOf("0."+parts[1]);
             while(remain!=0){

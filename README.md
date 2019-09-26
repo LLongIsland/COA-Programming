@@ -12,6 +12,11 @@
 * Added some transforming situations
 * Judged BIN.FLOAT to BIN.TOW_COMPLEMENT
 
+### 2019/9/26 All TestInt() in DEC Tests.
+
+* Fixed TestInteger4() in DEC Tests, which is a overflow number
+* The rest of the DEC Tests won't be fixed, for the programming tasks will be updated soon
+
 ---
 
 
