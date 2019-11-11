@@ -21,8 +21,6 @@ public class FIFOReplacement extends ReplacementStrategy {
         for (int i = start; i <= end; i++) {
             if (cacheInstance.getCacheLineValidBit(i))
                 if (Arrays.equals(addrTag, cacheInstance.getCacheLineTag(i))) {
-                    queue.remove(i);
-                    queue.add(0,i);
                     return i;
                 }
         }
@@ -35,12 +33,13 @@ public class FIFOReplacement extends ReplacementStrategy {
         int pointer = -1,addup=0,invalid=-1;
         for (int element : queue) {
             if (element >= start && element <= end) {
-                if(cacheInstance.getCacheLineValidBit(element)){
-                    pointer = element;
-                    addup++;
+                if(!cacheInstance.getCacheLineValidBit(element)){
+                    invalid=element;
+                    break;
                 }
                 else{
-                    invalid=element;
+                    pointer = element;
+                    addup++;
                 }
             }
         }

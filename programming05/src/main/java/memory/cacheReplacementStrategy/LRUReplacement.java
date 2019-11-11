@@ -43,15 +43,16 @@ public class LRUReplacement extends ReplacementStrategy {
         Cache cacheInstance=Cache.getCache();
         int pointer=-1,addup=0,invalid=-1;
         long time=Long.MAX_VALUE;
-        for(int i=end;i>=start;i--){
-            if(cacheInstance.getCacheLineValidBit(i)){
+        for(int i=start;i<=end;i++){
+            if(!cacheInstance.getCacheLineValidBit(i)){
+                invalid=i;
+                break;
+            }else{
                 if(cacheInstance.getCacheLineTimeStamp(i)<time){
                     time=cacheInstance.getCacheLineTimeStamp(i);
                     pointer=i;
                 }
                 addup++;
-            }else{
-                invalid=i;
             }
         }
         if(pointer==-1||addup<(end-start+1)){
